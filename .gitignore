@@ -10,7 +10,6 @@ crash.log
 
 # Ignore arquivos de plano e variáveis sensíveis
 *.tfplan
-*.tfvars
 
 # Ignore arquivos de lock
 .terraform.lock.hcl

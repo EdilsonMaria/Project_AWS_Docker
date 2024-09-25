@@ -1,12 +1,34 @@
 #CRIAÇÃO DE SECURITY GROUP QUE SERÁ AMARRADO AO ELB.
-resource "aws_security_group" "internet_facing_sg" { #AQUI VOCÊ DEFINE O RECURSO E EM SEGUIDA, O NOME DO SECURITY GROUP
-  name_prefix = "internet_facing_sg"                 #AQUI VOCÊ DEFINE O NOME TAG DO SECURITY GROUP
-  vpc_id = aws_vpc.vpc_prod.id                       #AQUI VOCÊ ASSOCIA SEU SG A VPC DO AMBIENTE
+module "vpc" {
+  source = "../terraform_VPC"  
+}
+
+resource "aws_security_group" "wordpres_SG" { 
+  name_prefix = "wordpres_SG"                 
+  vpc_id = module.vpc.vpc_id                     
   
   ingress {
-    from_port = 443
-    to_port   = 443
-    protocol  = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]  # COMO É UM BALANCE DE CARA PARA A INTERNET, PRECISAMOS MANTER ESSA REGRA ABERTA PARA O MUNDO
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = [module.vpc.vpc_id]  # Allow traffic from Load Balancer only
+  }
+
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = [module.vpc.vpc_id]  # Only Load Balancer allowed
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = [module.vpc.vpc_id]  # Only allow internal VPC traffic
+  }
+
+  tags = {
+    Name = "wordpres_SG"
   }
 }
