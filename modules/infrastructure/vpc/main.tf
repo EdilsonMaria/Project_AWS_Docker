@@ -1,23 +1,6 @@
-# Definição da versão do provedor
-terraform {
-  required_version = "1.9.6"
-
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "5.67.0"
-    }
-  }
-}
-
-provider "aws" {
-  region  = "us-east-1"
-  profile = "AdministratorAccess"
-}
-
 #VPC PRINCIPAL
 resource "aws_vpc" "project2_vpc" {
-  cidr_block           = "10.0.0.0/16"
+  cidr_block           = var.vpc_cidr_block
   enable_dns_hostnames = true
   tags = {
     Name = "project2-vpc"
