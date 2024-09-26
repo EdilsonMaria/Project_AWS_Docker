@@ -1,20 +1,14 @@
 #CRIAÇÃO DO LAUNCH TEMPLATE PARA EC2 NO AUTO SCALING
 resource "aws_launch_template" "ec2_template" {
-  name_prefix   = "ec2-template-"
+  name_prefix   = "ec2-template"
   image_id      = var.ami
   instance_type = var.instance_type
+  user_data = (filebase64("user_data.sh"))
 
   network_interfaces {
     associate_public_ip_address = true
-    security_groups             = [aws_security_group.ec2_sg.id]
-  }
-
-  tag_specifications {
-    resource_type = "instance"
-
-    tags = {
-      Name = "EC2-AutoScaling"
-    }
+    delete_on_termination = true
+    security_groups             = [var.ec2_SG]
   }
 }
 

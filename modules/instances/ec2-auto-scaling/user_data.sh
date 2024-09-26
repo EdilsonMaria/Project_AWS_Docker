@@ -33,6 +33,3 @@ sudo chmod +x /usr/local/bin/docker-compose
 # Verificar versões instaladas
 docker --version
 docker-compose --version
-
-# Reiniciar a instância para aplicar alterações (opcional)
-# sudo reboot
