@@ -1,11 +1,7 @@
-module "vpc" {
-  source = "../vpc" 
-}
-
 # CRIAÇÃO DE SECURITY GROUP DO ALB.
 resource "aws_security_group" "alb_SG" {
   name        = "alb_SG"
-  vpc_id      = module.vpc.vpc_id
+  vpc_id      = var.vpc_id
 
   ingress {
     from_port   = 80
@@ -34,7 +30,7 @@ resource "aws_security_group" "alb_SG" {
 # CRIAÇÃO DE SECURITY GROUP DA EC2 (WordPress)
 resource "aws_security_group" "ec2_SG" {
   name        = "ec2_SG"
-  vpc_id      = module.vpc.vpc_id
+  vpc_id      = var.vpc_id
 
   ingress {
     from_port       = 80
@@ -80,7 +76,7 @@ resource "aws_security_group" "ec2_SG" {
 # CRIAÇÃO DE SECURITY GROUP DO RDS (MySQL)
 resource "aws_security_group" "rds_SG" {
   name        = "rds_SG"
-  vpc_id      = module.vpc.vpc_id
+  vpc_id      = var.vpc_id
 
   ingress {
     from_port   = 3306
