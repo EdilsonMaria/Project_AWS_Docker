@@ -1,55 +1,87 @@
+#Gerar um par de chaves SSH para acessar a instância
+resource "tls_private_key" "chave_RSA" {
+  algorithm = "RSA"
+  rsa_bits  = 4096
+}
+
+# Salvar a chave pública no AWS EC2
+resource "aws_key_pair" "ssh_key" {
+  key_name   = "project2-compass"
+  public_key = tls_private_key.chave_RSA.public_key_openssh
+}
+
 #CRIAÇÃO DO LAUNCH TEMPLATE PARA EC2 NO AUTO SCALING
 resource "aws_launch_template" "ec2_template" {
-  name_prefix   = "ec2-template"
+  name   = "wordpress-launch-template"
   image_id      = var.ami
   instance_type = var.instance_type
-  user_data = (filebase64("user_data.sh"))
+  key_name = aws_key_pair.ssh_key.key_name
+  
+  user_data = filebase64("${path.module}/user_data.sh")
+
+  tags = {
+    Name        = "PB - JUN 2024"
+    ResourceType = "Instances, Volumes"
+    CostCenter  = "C092000024"
+    ResourceType = "Instances, Volumes"
+    Project     = "PB - JUN 2024"
+    ResourceType = "Instances, Volumes"
+  }
 
   network_interfaces {
-    associate_public_ip_address = true
-    delete_on_termination = true
+  #  associate_public_ip_address = true
+  #  delete_on_termination = true
     security_groups             = [var.ec2_SG]
+  }
+
+  block_device_mappings {
+    device_name = "/dev/xvda" 
+    ebs {
+      volume_size           = 8 
+      volume_type           = "gp2" 
+      delete_on_termination = true
+    }
   }
 }
 
 # Grupo de Auto Scaling (ASG)
-resource "aws_autoscaling_group" "asg" {
+resource "aws_autoscaling_group" "wordpress-auto-scaling" {
+  name = "wordpress-auto-scaling"
   desired_capacity     = 2  # Número inicial de instâncias EC2
   max_size             = 4  # Número máximo de instâncias EC2
   min_size             = 2  # Número mínimo de instâncias EC2
+  vpc_zone_identifier = [var.subnet-project2-publica1.id, var.subnet-project2-publica2.id] 
+  health_check_grace_period = 300  # Período de checagem de integridade (em segundos)
+  health_check_type         = "EC2"
+  target_group_arns = [var.wordpress_target_group]
+
   launch_template {
     id      = aws_launch_template.ec2_template.id
     version = "$Latest"
   }
 
-  vpc_zone_identifier = aws_subnet.public_subnet[*].id  # Subnets públicas para o Auto Scaling
-
-  tag {
+  tag  {
     key                 = "Name"
-    value               = "EC2-AutoScaling"
+    value               = "PB - JUN 2024"
     propagate_at_launch = true
   }
-
-  health_check_type         = "EC2"
-  health_check_grace_period = 300  # Período de checagem de integridade (em segundos)
-
-  # Espera por 300 segundos antes de iniciar a próxima verificação de saúde
-  wait_for_capacity_timeout = "0"
 }
 
 # Anexar políticas de Auto Scaling
 resource "aws_autoscaling_policy" "scale_up" {
   name                   = "scale-up"
-  scaling_adjustment      = 1
+  autoscaling_group_name  = aws_autoscaling_group.wordpress-auto-scaling.id
   adjustment_type         = "ChangeInCapacity"
-  autoscaling_group_name  = aws_autoscaling_group.asg.name
+  scaling_adjustment      = 1
   cooldown                = 300  # Tempo de espera antes de permitir outro ajuste
+  policy_type = "SimpleScaling"
 }
 
 resource "aws_autoscaling_policy" "scale_down" {
   name                   = "scale-down"
-  scaling_adjustment      = -1
+  autoscaling_group_name  = aws_autoscaling_group.wordpress-auto-scaling.id
   adjustment_type         = "ChangeInCapacity"
-  autoscaling_group_name  = aws_autoscaling_group.asg.name
+  scaling_adjustment      = -1
   cooldown                = 300  # Tempo de espera antes de permitir outro ajuste
+  policy_type = "SimpleScaling"
 }

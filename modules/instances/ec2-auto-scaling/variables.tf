@@ -6,14 +6,26 @@ variable "ami" {
   default = "ami-0e54eba7c51c234f6"  
 }
 
-variable "alb_SG" {
-}
-
 variable "ec2_SG" {
-}
-
-variable "rds_sg" {
+  type        = string
 }
 
 variable "vpc_id" {
+  type        = string
+}
+
+variable "subnet-project2-publica1" {
+    type        = object({
+    id = string
+  })
+}
+
+variable "subnet-project2-publica2" {
+    type        = object({
+    id = string
+  })
+}
+
+variable "wordpress_target_group" {
+  type        = string  
 }

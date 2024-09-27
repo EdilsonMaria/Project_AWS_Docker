@@ -4,7 +4,7 @@ resource "aws_lb" "wordpress_lb" {
   internal           = false
   load_balancer_type = "application"
   security_groups    = [var.alb_SG]
-  subnets            = [var.subnet-project2-publica1, var.subnet-project2-publica2]
+  subnets           = [var.subnet-project2-publica1.id, var.subnet-project2-publica2.id]
 
   enable_deletion_protection = false
 
@@ -37,12 +37,12 @@ resource "aws_lb_target_group" "wordpress_target_group" {
 
 # Vincular o Target Group ao Load Balancer por meio de um Listener HTTP
 resource "aws_lb_listener" "wordpress_http_listener" {
-  load_balancer_arn = aws_lb.wordpress_lb
+  load_balancer_arn = aws_lb.wordpress_lb.arn
   port              = 80
   protocol          = "HTTP"
   default_action {
     type             = "forward"
-    target_group_arn = aws_lb_target_group.wordpress_target_group
+    target_group_arn = aws_lb_target_group.wordpress_target_group.arn
   }
 }
 
