@@ -19,18 +19,27 @@ resource "aws_launch_template" "ec2_template" {
   
   user_data = filebase64("${path.module}/user_data.sh")
 
-  tags = {
-    Name        = "PB - JUN 2024"
-    ResourceType = "Instances, Volumes"
-    CostCenter  = "C092000024"
-    ResourceType = "Instances, Volumes"
-    Project     = "PB - JUN 2024"
-    ResourceType = "Instances, Volumes"
+  tag_specifications {
+    resource_type = "instance"
+    tags = {
+      Name        = "PB - JUN 2024"
+      CostCenter  = "C092000024"
+      Project     = "PB - JUN 2024"
+    }
+  }
+
+  tag_specifications {
+    resource_type = "volume"
+    tags = {
+      Name        = "PB - JUN 2024"
+      CostCenter  = "C092000024"
+      Project     = "PB - JUN 2024"
+    }
   }
 
   network_interfaces {
-  #  associate_public_ip_address = true
-  #  delete_on_termination = true
+    associate_public_ip_address = true
+    delete_on_termination = true
     security_groups             = [var.ec2_SG]
   }
 
@@ -51,9 +60,10 @@ resource "aws_autoscaling_group" "wordpress-auto-scaling" {
   max_size             = 4  # Número máximo de instâncias EC2
   min_size             = 2  # Número mínimo de instâncias EC2
   vpc_zone_identifier = [var.subnet-project2-publica1.id, var.subnet-project2-publica2.id] 
+  target_group_arns = [var.wordpress_target_group]
   health_check_grace_period = 300  # Período de checagem de integridade (em segundos)
   health_check_type         = "EC2"
-  target_group_arns = [var.wordpress_target_group]
+  
 
   launch_template {
     id      = aws_launch_template.ec2_template.id
@@ -62,7 +72,7 @@ resource "aws_autoscaling_group" "wordpress-auto-scaling" {
 
   tag  {
     key                 = "Name"
-    value               = "PB - JUN 2024"
+    value               = "WordPress"
     propagate_at_launch = true
   }
 }
