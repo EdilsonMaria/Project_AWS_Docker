@@ -13,3 +13,6 @@ crash.log
 
 # Ignore arquivos de lock
 .terraform.lock.hcl
+
+# Ignore chaves de acesso
+*.pem
