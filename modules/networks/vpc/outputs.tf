@@ -17,3 +17,4 @@ output "subnet-project2-publica1" {
 output "subnet-project2-publica2" {
   value = aws_subnet.subnet-project2-publica2
 }
+

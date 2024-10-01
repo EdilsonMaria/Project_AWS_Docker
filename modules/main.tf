@@ -28,3 +28,10 @@ module "aws_autoscaling_group" {
   subnet-project2-publica2 = module.vpc.subnet-project2-publica2
   wordpress_target_group   = module.aws_lb.wordpress_target_group.arn
 }
+
+module "aws_efs_file_system" {
+  source                   = "./instances/efs"
+  end_SG                   = module.security_group.end_SG
+  subnet-project2-privada1 = module.vpc.subnet-project2-privada1.id
+  subnet-project2-privada2 = module.vpc.subnet-project2-privada2.id
+}

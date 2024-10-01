@@ -19,7 +19,12 @@ sudo systemctl restart docker # Garante que o serviço Docker está sempre rodan
 
 sudo yum install -y nfs-utils # Instalar as ferramentas NFS (necessário para montar o EFS)
 
+sudo yum install -y amazon-efs-utils
+
 sudo mkdir -p /mnt/efs # Cria um diretorio para o ponto de montagem
+
+sudo mount -t efs -o tls fs-04cd6d8ec685dac04:/ /mnt/efs
+
 
 
 
