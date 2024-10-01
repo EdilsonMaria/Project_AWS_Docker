@@ -158,3 +158,14 @@ resource "aws_route" "rota_padrao_publica_subnet_b" {
 
   gateway_id = aws_internet_gateway.project2-igw01.id
 }
+
+#CRIANDO UM VPC ENDPOINT P/ ACESSAR EC2 EM SUBNET PRIVADA
+resource "aws_ec2_instance_connect_endpoint" "wordpress-endpoint" {
+  #vpc_id            = aws_vpc.project2_vpc.id
+  subnet_id = aws_subnet.subnet-project2-publica1.id
+  security_group_ids = [var.end_SG]
+
+  tags = {
+    Name = "wordpress-endpoint"
+  }
+}

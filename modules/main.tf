@@ -1,5 +1,6 @@
 module "vpc" {
   source = "./networks/vpc"
+  end_SG = module.security_group.end_SG
 }
 
 module "security_group" {

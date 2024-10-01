@@ -21,3 +21,6 @@ sudo yum install -y nfs-utils # Instalar as ferramentas NFS (necessário para mo
 
 sudo mkdir -p /mnt/efs # Cria um diretorio para o ponto de montagem
 
+
+
+

@@ -22,7 +22,8 @@ resource "aws_launch_template" "ec2_template" {
   instance_type = var.instance_type
   key_name      = aws_key_pair.ssh_key.key_name
   
-  user_data = filebase64("${path.module}/user_data.sh")
+  #user_data = filebase64("${path.module}/user_data.sh")
+  user_data = filebase64("./user_data.sh")
 
   tag_specifications {
     resource_type = "instance"
@@ -43,7 +44,7 @@ resource "aws_launch_template" "ec2_template" {
   }
 
   network_interfaces {
-    associate_public_ip_address = true
+    associate_public_ip_address = false
     delete_on_termination       = true
     security_groups             = [var.ec2_SG]
   }
@@ -61,9 +62,9 @@ resource "aws_launch_template" "ec2_template" {
 # Grupo de Auto Scaling (ASG)
 resource "aws_autoscaling_group" "wordpress-auto-scaling" {
   name                      = "wordpress-auto-scaling"
-  desired_capacity          = 2 # Número inicial de instâncias EC2
-  max_size                  = 3 # Número máximo de instâncias EC2
-  min_size                  = 2 # Número mínimo de instâncias EC2
+  desired_capacity          = 1 # Número inicial de instâncias EC2
+  max_size                  = 2 # Número máximo de instâncias EC2
+  min_size                  = 1 # Número mínimo de instâncias EC2
   #vpc_zone_identifier       = [var.subnet-project2-publica1.id, var.subnet-project2-publica2.id]
   vpc_zone_identifier       = [var.subnet-project2-privada1.id, var.subnet-project2-privada2.id]
   target_group_arns         = [var.wordpress_target_group]
