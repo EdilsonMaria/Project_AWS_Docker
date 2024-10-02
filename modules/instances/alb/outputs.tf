@@ -1,5 +1,5 @@
 output "wordpress_lb" {
-  value = aws_lb.wordpress_lb
+  value = aws_lb.wordpress-lb
 }
 
 output "wordpress_target_group" {

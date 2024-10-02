@@ -8,7 +8,7 @@ services:
     ports:
       - "80:80"  
     environment:
-      WORDPRESS_DB_HOST: $(terraform output -raw db_endpoint) 
+      WORDPRESS_DB_HOST: "${DB_ENDPOINT}"
       WORDPRESS_DB_USER: "admin"   
       WORDPRESS_DB_PASSWORD: "admin_password"  
       WORDPRESS_DB_NAME: "wordpress"    

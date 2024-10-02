@@ -6,6 +6,6 @@ variable "subnet-project2-privada2" {
   type        = string
 }
 
-variable "end_SG" {
+variable "ec2_SG" {
   type = string
 }

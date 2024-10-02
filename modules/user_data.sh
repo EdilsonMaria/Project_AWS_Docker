@@ -17,6 +17,8 @@ sudo chmod +x /usr/local/bin/docker-compose # Dá permissão de execução para 
 
 sudo systemctl restart docker # Garante que o serviço Docker está sempre rodando
 
+sudo timedatectl set-timezone America/Sao_Paulo # Ajusta o horario para faciliar a vizualização dos logs do container
+
 sudo yum install -y nfs-utils # Instalar as ferramentas NFS (necessário para montar o EFS)
 
 sudo yum install -y amazon-efs-utils
@@ -38,7 +40,6 @@ sudo git clone https://github.com/EdilsonMaria/Docker-Compose_WordPress # Baixar
 cd Docker-Compose_WordPress #Acessando o diretorio com o docker-compose.yml
 
 docker-compose up -d # Subir o container WordPress com docker-compose
-
 
 
 

@@ -1,6 +1,6 @@
 # CRIAÇÃO DE SECURITY GROUP DO ALB.
-resource "aws_security_group" "alb_SG" {
-  name        = "alb_SG"
+resource "aws_security_group" "alb-SG" {
+  name        = "alb-SG"
   vpc_id      = var.vpc_id
 
   ingress {
@@ -16,9 +16,9 @@ resource "aws_security_group" "alb_SG" {
     cidr_blocks = ["0.0.0.0/0"]
   }
   egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
 
@@ -28,22 +28,22 @@ resource "aws_security_group" "alb_SG" {
 }
 
 # CRIAÇÃO DE SECURITY GROUP DA EC2 (WordPress)
-resource "aws_security_group" "ec2_SG" {
-  name        = "ec2_SG"
+resource "aws_security_group" "ec2-SG" {
+  name        = "ec2-SG"
   vpc_id      = var.vpc_id
 
   ingress {
     from_port       = 80
     to_port         = 80
     protocol        = "tcp"
-    security_groups = [aws_security_group.alb_SG.id]
+    security_groups = [aws_security_group.alb-SG.id]
   }
 
   ingress {
     from_port       = 443
     to_port         = 443
     protocol        = "tcp"
-    security_groups = [aws_security_group.alb_SG.id]
+    security_groups = [aws_security_group.alb-SG.id]
   }
 
   ingress {
@@ -60,18 +60,11 @@ resource "aws_security_group" "ec2_SG" {
     cidr_blocks = ["10.0.0.0/16"] 
   }
 
-   ingress {
-    from_port   = 0
-    to_port     = 65535
-    protocol    = "tcp"
-    cidr_blocks = ["10.0.0.0/16"] # Permitir todo o tráfego dentro da VPC
-  }
-
   ingress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "icmp" 
-    cidr_blocks = ["10.0.0.0/16"] # Permitir ping entre as subnets
+    from_port   = 2049
+    to_port     = 2049
+    protocol    = "tcp"
+    cidr_blocks = ["10.0.0.0/16"]  
   }
 
   egress {
@@ -87,8 +80,8 @@ resource "aws_security_group" "ec2_SG" {
 }
 
 # CRIAÇÃO DE SECURITY GROUP DO RDS (MySQL)
-resource "aws_security_group" "rds_SG" {
-  name        = "rds_SG"
+resource "aws_security_group" "rds-SG" {
+  name        = "rds-SG"
   vpc_id      = var.vpc_id
 
   ingress {
@@ -111,22 +104,22 @@ resource "aws_security_group" "rds_SG" {
 }
 
 # CRIAÇÃO DE SECURITY GROUP INSTANCE CONECT
-resource "aws_security_group" "end_SG" {
-  name        = "end_SG"
+resource "aws_security_group" "end-SG" {
+  name        = "end-SG"
   vpc_id      = var.vpc_id
 
   ingress {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"  
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = ["189.124.204.128/32"]
   }
 
   egress {
     from_port       = 22
     to_port         = 22
     protocol        = "tcp"
-    security_groups = [aws_security_group.ec2_SG.id]
+    security_groups = [aws_security_group.ec2-SG.id]
   }
 
   tags = {

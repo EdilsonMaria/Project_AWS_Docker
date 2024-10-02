@@ -1,5 +1,5 @@
 #CRIAÇÃO ELASTC LOAD BALANCE ELB
-resource "aws_lb" "wordpress_lb" {
+resource "aws_lb" "wordpress-lb" {
   name               = "wordpress-lb"
   internal           = false
   load_balancer_type = "application"
@@ -37,7 +37,7 @@ resource "aws_lb_target_group" "wordpress-target-group" {
 
 # Vincular o Target Group ao Load Balancer por meio de um Listener HTTP
 resource "aws_lb_listener" "wordpress_http_listener" {
-  load_balancer_arn = aws_lb.wordpress_lb.arn
+  load_balancer_arn = aws_lb.wordpress-lb.arn
   port              = 80
   protocol          = "HTTP"
   default_action {

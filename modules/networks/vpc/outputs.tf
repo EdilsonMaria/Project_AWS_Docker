@@ -1,5 +1,5 @@
 output "vpc_id" {
-  value = aws_vpc.project2_vpc.id
+  value = aws_vpc.project2-vpc.id
 }
 
 output "subnet-project2-privada1" {
