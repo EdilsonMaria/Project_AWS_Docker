@@ -37,9 +37,9 @@ module "aws_efs_file_system" {
 }
 
 module "aws_db_instance" {
-  source = "./instances/rds"
+  source                   = "./instances/rds"
   vpc_id                   = module.vpc.vpc_id
-  rds_SG = module.security_group.rds_SG
+  rds_SG                   = module.security_group.rds_SG
   subnet-project2-privada1 = module.vpc.subnet-project2-privada1.id
   subnet-project2-privada2 = module.vpc.subnet-project2-privada2.id
 }

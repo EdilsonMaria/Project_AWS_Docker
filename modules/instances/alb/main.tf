@@ -17,8 +17,8 @@ resource "aws_lb" "wordpress_lb" {
 }
 
 # Criar o Target Group (Grupo de Alvos) para as instâncias EC2
-resource "aws_lb_target_group" "wordpress_target_group" {
-  name     = "wordpress_target_group"
+resource "aws_lb_target_group" "wordpress-target-group" {
+  name     = "wordpress-target-group"
   port     = 80
   protocol = "HTTP"
   vpc_id   = var.vpc_id
@@ -42,7 +42,7 @@ resource "aws_lb_listener" "wordpress_http_listener" {
   protocol          = "HTTP"
   default_action {
     type             = "forward"
-    target_group_arn = aws_lb_target_group.wordpress_target_group.arn
+    target_group_arn = aws_lb_target_group.wordpress-target-group.arn
   }
 }
 

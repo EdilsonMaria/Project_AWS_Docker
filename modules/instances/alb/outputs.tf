@@ -3,7 +3,7 @@ output "wordpress_lb" {
 }
 
 output "wordpress_target_group" {
-  value = aws_lb_target_group.wordpress_target_group
+  value = aws_lb_target_group.wordpress-target-group
 }
 
 output "wordpress_http_listener" {
