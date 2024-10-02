@@ -4,7 +4,7 @@ resource "aws_lb" "wordpress-lb" {
   internal           = false
   load_balancer_type = "application"
   security_groups    = [var.alb_SG]
-  subnets = [var.subnet-project2-privada1.id, var.subnet-project2-privada2.id]
+  subnets = [var.subnet-project2-publica1.id, var.subnet-project2-publica2.id]
 
   enable_deletion_protection = false
 
@@ -31,7 +31,9 @@ resource "aws_lb_target_group" "wordpress-target-group" {
     timeout             = 5
     interval            = 30
     path                = "/"
-    protocol            = "HTTP"
+    protocol            = "HTTPS"
+    port                = "443"
+    matcher             = "200"
   }
 }
 
