@@ -21,8 +21,7 @@ resource "aws_launch_template" "ec2_template" {
   image_id      = var.ami
   instance_type = var.instance_type
   key_name      = aws_key_pair.ssh_key.key_name
-  
-  #user_data = filebase64("${path.module}/user_data.sh")
+ 
   user_data = filebase64("./user_data.sh")
 
   tag_specifications {
@@ -62,13 +61,12 @@ resource "aws_launch_template" "ec2_template" {
 # Grupo de Auto Scaling (ASG)
 resource "aws_autoscaling_group" "wordpress-auto-scaling" {
   name                      = "wordpress-auto-scaling"
-  desired_capacity          = 2 # Número inicial de instâncias EC2
-  max_size                  = 3 # Número máximo de instâncias EC2
-  min_size                  = 2 # Número mínimo de instâncias EC2
-  #vpc_zone_identifier       = [var.subnet-project2-publica1.id, var.subnet-project2-publica2.id]
+  desired_capacity          = 1
+  min_size                  = 1 
+  max_size                  = 2 
   vpc_zone_identifier       = [var.subnet-project2-privada1.id, var.subnet-project2-privada2.id]
   target_group_arns         = [var.wordpress_target_group]
-  health_check_grace_period = 300 # Período de checagem de integridade (em segundos)
+  health_check_grace_period = 300 
   health_check_type         = "EC2"
 
   launch_template {
@@ -89,7 +87,7 @@ resource "aws_autoscaling_policy" "scale_up" {
   autoscaling_group_name = aws_autoscaling_group.wordpress-auto-scaling.id
   adjustment_type        = "ChangeInCapacity"
   scaling_adjustment     = 1
-  cooldown               = 300 # Tempo de espera antes de permitir outro ajuste
+  cooldown               = 300 
   policy_type            = "SimpleScaling"
 }
 
@@ -98,6 +96,6 @@ resource "aws_autoscaling_policy" "scale_down" {
   autoscaling_group_name = aws_autoscaling_group.wordpress-auto-scaling.id
   adjustment_type        = "ChangeInCapacity"
   scaling_adjustment     = -1
-  cooldown               = 300 # Tempo de espera antes de permitir outro ajuste
+  cooldown               = 300 
   policy_type            = "SimpleScaling"
 }

@@ -29,11 +29,15 @@ sudo mount -t efs -o tls ${EFS_DNS}:/ /mnt/efs
 
 echo "${EFS_DNS}:/ /mnt/efs efs defaults,_netdev 0 0" | sudo tee -a /etc/fstab # Adicionar a montagem ao fstab para persistência
 
-curl -o /mnt/efs/docker-compose.yml https://github.com/EdilsonMaria/Docker-Compose_WordPress # Baixar o docker-compose.yml do repositório do GitHub
+sudo yum install git -y # Instalando o git na maquina
+
+cd home # Acessando o diretorio home
+
+sudo git clone https://github.com/EdilsonMaria/Docker-Compose_WordPress # Baixar o docker-compose.yml do repositório do GitHub
  
-# Subir o container WordPress com docker-compose
-cd /mnt/efs
-docker-compose up -d
+cd Docker-Compose_WordPress #Acessando o diretorio com o docker-compose.yml
+
+docker-compose up -d # Subir o container WordPress com docker-compose
 
 
 

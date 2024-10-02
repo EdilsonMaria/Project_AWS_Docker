@@ -5,7 +5,6 @@ resource "aws_lb" "wordpress_lb" {
   load_balancer_type = "application"
   security_groups    = [var.alb_SG]
   subnets = [var.subnet-project2-privada1.id, var.subnet-project2-privada2.id]
-  #subnets            = [var.subnet-project2-publica1.id, var.subnet-project2-publica2.id]
 
   enable_deletion_protection = false
 
@@ -19,7 +18,7 @@ resource "aws_lb" "wordpress_lb" {
 
 # Criar o Target Group (Grupo de Alvos) para as instâncias EC2
 resource "aws_lb_target_group" "wordpress_target_group" {
-  name     = "my-target-group"
+  name     = "wordpress_target_group"
   port     = 80
   protocol = "HTTP"
   vpc_id   = var.vpc_id
@@ -47,11 +46,4 @@ resource "aws_lb_listener" "wordpress_http_listener" {
   }
 }
 
-# Registrar as instâncias EC2 no Target Group
-#resource "aws_lb_target_group_attachment" "tg_attachment" {
-#  count            = 2
-#  target_group_arn = aws_lb_target_group.my_target_group.arn
-#  target_id        = aws_instance.ec2_instances[count.index].id  # Vincular as instâncias EC2
-#  port             = 80
-#}
 

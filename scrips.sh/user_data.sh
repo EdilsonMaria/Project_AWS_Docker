@@ -19,5 +19,18 @@ sudo systemctl restart docker # Garante que o serviço Docker está sempre rodan
 
 sudo yum install -y nfs-utils # Instalar as ferramentas NFS (necessário para montar o EFS)
 
+sudo yum install -y amazon-efs-utils
+
 sudo mkdir -p /mnt/efs # Cria um diretorio para o ponto de montagem
+
+EFS_DNS=$(terraform output -raw efs_dns) # Variáveis do EFS
+
+sudo mount -t efs -o tls ${EFS_DNS}:/ /mnt/efs
+
+echo "${EFS_DNS}:/ /mnt/efs efs defaults,_netdev 0 0" | sudo tee -a /etc/fstab # Adicionar a montagem ao fstab para persistência
+
+curl -o /mnt/efs/docker-compose.yml https://github.com/EdilsonMaria/Docker-Compose_WordPress # Baixar o docker-compose.yml do repositório do GitHub
+ 
+cd /mnt/efs 
+docker-compose up -d # Subir o container WordPress com docker-compose
 

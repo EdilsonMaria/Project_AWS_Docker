@@ -6,17 +6,21 @@ services:
     container_name: wordpress
     restart: always
     ports:
-      - "8080:80"  # Mapear porta 8080 no host para a porta 80 no container
+      - "80:80"  
     environment:
-      WORDPRESS_DB_HOST: ${DB_HOST}    # Endereço do RDS MySQL
-      WORDPRESS_DB_USER: ${DB_USER}    # Usuário do banco de dados
-      WORDPRESS_DB_PASSWORD: ${DB_PASSWORD}  # Senha do banco de dados
-      WORDPRESS_DB_NAME: ${DB_NAME}    # Nome do banco de dados
+      WORDPRESS_DB_HOST: $(terraform output -raw db_endpoint) 
+      WORDPRESS_DB_USER: "admin"   
+      WORDPRESS_DB_PASSWORD: "admin_password"  
+      WORDPRESS_DB_NAME: "wordpress"    
     volumes:
-      - /mnt/efs:/var/www/html  # Montagem do EFS dentro do container
+      - /mnt/efs:/var/www/html  
     networks:
       - wp-network
 
 networks:
   wp-network:
     driver: bridge
+
+volumes:
+  db_data:
+
