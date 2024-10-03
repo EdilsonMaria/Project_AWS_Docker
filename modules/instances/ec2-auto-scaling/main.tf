@@ -12,16 +12,18 @@ resource "aws_key_pair" "ssh-key" {
 
 resource "local_file" "private-key" {
   content  = tls_private_key.chave-RSA.private_key_pem
-  filename = "${path.module}/../../project2-compass.pem" 
+  filename = "${path.module}/../../project2-compass.pem"
 }
 
 #CRIAÇÃO DO LAUNCH TEMPLATE PARA EC2 NO AUTO SCALING
 resource "aws_launch_template" "ec2-template" {
+  depends_on = [var.rds_instance_id, var.efs_id]
+
   name          = "wordpress-launch-template"
   image_id      = var.ami
   instance_type = var.instance_type
   key_name      = aws_key_pair.ssh-key.key_name
- 
+
   user_data = filebase64("./user_data.sh")
 
   tag_specifications {
@@ -60,13 +62,15 @@ resource "aws_launch_template" "ec2-template" {
 
 # Grupo de Auto Scaling (ASG)
 resource "aws_autoscaling_group" "wordpress-auto-scaling" {
+  depends_on = [var.rds_instance_id, var.efs_id]
+
   name                      = "wordpress-auto-scaling"
   desired_capacity          = 2
-  min_size                  = 2 
-  max_size                  = 4 
+  min_size                  = 2
+  max_size                  = 4
   vpc_zone_identifier       = [var.subnet-project2-privada1.id, var.subnet-project2-privada2.id]
   target_group_arns         = [var.wordpress_target_group]
-  health_check_grace_period = 300 
+  health_check_grace_period = 300
   health_check_type         = "EC2"
 
   launch_template {
@@ -87,7 +91,7 @@ resource "aws_autoscaling_policy" "scale-up" {
   autoscaling_group_name = aws_autoscaling_group.wordpress-auto-scaling.id
   adjustment_type        = "ChangeInCapacity"
   scaling_adjustment     = 1
-  cooldown               = 300 
+  cooldown               = 300
   policy_type            = "SimpleScaling"
 }
 
@@ -96,6 +100,6 @@ resource "aws_autoscaling_policy" "scale-down" {
   autoscaling_group_name = aws_autoscaling_group.wordpress-auto-scaling.id
   adjustment_type        = "ChangeInCapacity"
   scaling_adjustment     = -1
-  cooldown               = 300 
+  cooldown               = 300
   policy_type            = "SimpleScaling"
 }

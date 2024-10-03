@@ -19,13 +19,13 @@ variable "subnet-project2-publica2" {
 }
 
 variable "subnet-project2-privada1" {
-    type        = object({
+  type = object({
     id = string
   })
 }
 
 variable "subnet-project2-privada2" {
-    type        = object({
+  type = object({
     id = string
   })
 }

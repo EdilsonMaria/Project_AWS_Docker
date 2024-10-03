@@ -1,5 +1,5 @@
 output "efs_id" {
-  value       = aws_efs_file_system.wordpress-efs.id
+  value = aws_efs_file_system.wordpress-efs.id
 }
 
 output "efs_dns" {

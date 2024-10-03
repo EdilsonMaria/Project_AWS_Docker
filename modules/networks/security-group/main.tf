@@ -1,7 +1,7 @@
 # CRIAÇÃO DE SECURITY GROUP DO ALB.
 resource "aws_security_group" "alb-SG" {
-  name        = "alb-SG"
-  vpc_id      = var.vpc_id
+  name   = "alb-SG"
+  vpc_id = var.vpc_id
 
   ingress {
     from_port   = 80
@@ -29,8 +29,8 @@ resource "aws_security_group" "alb-SG" {
 
 # CRIAÇÃO DE SECURITY GROUP DA EC2 (WordPress)
 resource "aws_security_group" "ec2-SG" {
-  name        = "ec2-SG"
-  vpc_id      = var.vpc_id
+  name   = "ec2-SG"
+  vpc_id = var.vpc_id
 
   ingress {
     from_port       = 80
@@ -50,21 +50,21 @@ resource "aws_security_group" "ec2-SG" {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"] 
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   ingress {
     from_port   = 3306
     to_port     = 3306
     protocol    = "tcp"
-    cidr_blocks = ["10.0.0.0/16"] 
+    cidr_blocks = ["10.0.0.0/16"]
   }
 
   ingress {
     from_port   = 2049
     to_port     = 2049
     protocol    = "tcp"
-    cidr_blocks = ["10.0.0.0/16"]  
+    cidr_blocks = ["10.0.0.0/16"]
   }
 
   egress {
@@ -81,14 +81,14 @@ resource "aws_security_group" "ec2-SG" {
 
 # CRIAÇÃO DE SECURITY GROUP DO RDS (MySQL)
 resource "aws_security_group" "rds-SG" {
-  name        = "rds-SG"
-  vpc_id      = var.vpc_id
+  name   = "rds-SG"
+  vpc_id = var.vpc_id
 
   ingress {
     from_port   = 3306
     to_port     = 3306
     protocol    = "tcp"
-    cidr_blocks = ["10.0.0.0/16"] 
+    cidr_blocks = ["10.0.0.0/16"]
   }
 
   egress {
@@ -105,13 +105,13 @@ resource "aws_security_group" "rds-SG" {
 
 # CRIAÇÃO DE SECURITY GROUP INSTANCE CONECT
 resource "aws_security_group" "end-SG" {
-  name        = "end-SG"
-  vpc_id      = var.vpc_id
+  name   = "end-SG"
+  vpc_id = var.vpc_id
 
   ingress {
     from_port   = 0
     to_port     = 0
-    protocol    = "-1"  
+    protocol    = "-1"
     cidr_blocks = ["189.124.204.128/32"]
   }
 

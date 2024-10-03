@@ -41,3 +41,11 @@ variable "subnet-project2-publica2" {
 variable "wordpress_target_group" {
   type = string
 }
+
+variable "rds_instance_id" {
+  type = string
+}
+
+variable "efs_id" {
+  type = string
+}
