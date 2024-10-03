@@ -35,7 +35,7 @@ sudo yum install git -y # Instalando o git na maquina
 
 cd home # Acessando o diretorio home
 
-sudo git clone https://github.com/EdilsonMaria/Docker-Compose_WordPress # Baixar o docker-compose.yml do repositório do GitHub
+sudo git clone https://github.com/EdilsonMaria/Docker-Compose_WordPress.git # Baixar o docker-compose.yml do repositório do GitHub
  
 cd Docker-Compose_WordPress #Acessando o diretorio com o docker-compose.yml
 

@@ -30,9 +30,9 @@ resource "aws_lb_target_group" "wordpress-target-group" {
     unhealthy_threshold = 2
     timeout             = 5
     interval            = 30
-    path                = "/"
-    protocol            = "HTTPS"
-    port                = "443"
+    path                = "/wp-admin/install.php"
+    protocol            = "HTTP"
+    port                = "80"
     matcher             = "200"
   }
 }
