@@ -1,166 +1,172 @@
-# Projeto
+Projeto IaC com Terraform - Infraestrutura AWS para WordPress com RDS, EFS, Auto Scaling e Load Balancer
+Este projeto utiliza Infrastructure as Code (IaC) com Terraform para provisionar uma infraestrutura completa na AWS. A infraestrutura permite o deployment de um ambiente WordPress em instâncias EC2 sem IP público, distribuídas em diferentes Availability Zones (AZs), conectadas a um banco de dados MySQL no RDS, com pastas compartilhadas usando EFS, suporte a Auto Scaling e balanceamento de carga com ALB (Application Load Balancer).
 
-Requisitos AWS:
--	Gerar uma chave pública para acesso ao ambiente;
--	Criar 1 instância EC2 com o sistema operacional Amazon Linux 2 (Família t3.small, 16 GB SSD);
--	Gerar 1 elastic IP e anexar à instância EC2;
--	Liberar as portas de comunicação para acesso público: (22/TCP, 111/TCP e UDP, 2049/TCP/UDP, 80/TCP, 443/TCP).
+Estrutura do Projeto
+bash
+Copiar código
+.
+├── main.tf               # Arquivo principal que chama os módulos
+├── docker-compose.yml     # Arquivo Docker Compose para rodar o WordPress nas instâncias EC2
+├── .env                   # Arquivo de variáveis de ambiente para o Docker Compose
+├── user_data.sh           # Script para montagem do EFS nas instâncias EC2
+├── modules
+│   ├── instances
+│   │   ├── alb
+│   │   │   ├── main.tf
+│   │   │   ├── outputs.tf
+│   │   │   ├── providers.tf
+│   │   │   ├── variables.tf
+│   │   │   ├── version.tf
+│   │   ├── ec2-auto-scaling
+│   │   │   ├── main.tf
+│   │   │   ├── outputs.tf
+│   │   │   ├── providers.tf
+│   │   │   ├── variables.tf
+│   │   │   ├── version.tf
+│   │   ├── efs
+│   │   │   ├── main.tf
+│   │   │   ├── outputs.tf
+│   │   │   ├── providers.tf
+│   │   │   ├── variables.tf
+│   │   │   ├── version.tf
+│   │   ├── rds
+│   │       ├── main.tf
+│   │       ├── outputs.tf
+│   │       ├── providers.tf
+│   │       ├── variables.tf
+│   │       ├── version.tf
+│   ├── networks
+│   │   ├── security-group
+│   │   │   ├── main.tf
+│   │   │   ├── outputs.tf
+│   │   │   ├── providers.tf
+│   │   │   ├── variables.tf
+│   │   │   ├── version.tf
+│   │   ├── vpc
+│   │       ├── main.tf
+│   │       ├── outputs.tf
+│   │       ├── providers.tf
+│   │       ├── variables.tf
+│   │       ├── version.tf
+Funcionalidade
+O projeto provisiona a seguinte infraestrutura na AWS:
 
-Requisitos no linux:
--	Configurar o NFS entregue;
--	Criar um diretório dentro do filesystem do NFS com seu nome;
--	Subir um apache no servidor - o apache deve estar online e rodando;
--	Criar um script que valide se o serviço esta online e envie o resultado da validação para o seu diretorio no nfs;
--	O script deve conter - Data HORA + nome do serviço + Status + mensagem personalizada de ONLINE ou offline;
--	O script deve gerar 2 arquivos de saida: 1 para o serviço online e 1 para o serviço OFFLINE;
--	Preparar a execução automatizada do script a cada 5 minutos.
--	Fazer o versionamento da atividade;
--	Fazer a documentação explicando o processo de instalação do Linux.
+VPC com 4 subnets:
+2 subnets públicas (uma em cada AZ)
+2 subnets privadas (uma em cada AZ)
+Internet Gateway para as subnets públicas e NAT Gateway para as subnets privadas (uma para cada AZ)
+Tabelas de roteamento para as subnets públicas e privadas:
+As subnets públicas roteam tráfego para o Internet Gateway
+As subnets privadas têm acesso à Internet através do NAT Gateway
+VPC Endpoint para permitir o acesso às instâncias EC2 privadas sem IP público, dispensando o uso de Bastion Hosts
+4 Security Groups para:
+Instâncias EC2 (acesso SSH e tráfego de HTTP/HTTPS)
+Banco de dados RDS (acesso ao MySQL)
+EFS (para compartilhamento de arquivos)
+Endpoint (para comunicação interna)
+EFS (Elastic File System) para compartilhamento de arquivos entre as instâncias EC2
+Auto Scaling Group para gerenciar instâncias EC2 com balanceamento de carga
+Banco de dados RDS (MySQL) para armazenar dados do WordPress
+Application Load Balancer (ALB) para distribuir o tráfego entre as instâncias EC2 privadas
+As instâncias EC2 são provisionadas para rodar o WordPress em contêineres Docker, com pastas públicas compartilhadas através do EFS, conectadas ao banco de dados RDS.
+Pré-requisitos
+1. Instalar o Terraform
+No Linux (CentOS ou Ubuntu), siga os passos abaixo:
 
-*Importante: Desligue a máquina quando não for utilizar, será descontado pontos de máquinas que permanecerem ligadas em períodos fora de uso.*
+CentOS:
+bash
+Copiar código
+sudo yum install -y yum-utils
+sudo yum-config-manager --add-repo https://rpm.releases.hashicorp.com/RHEL/hashicorp.repo
+sudo yum -y install terraform
+Ubuntu:
+bash
+Copiar código
+sudo apt-get update && sudo apt-get install -y gnupg software-properties-common curl
+curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add -
+sudo apt-add-repository "deb https://apt.releases.hashicorp.com $(lsb_release -cs) main"
+sudo apt-get update && sudo apt-get install terraform
+Verifique se o Terraform foi instalado corretamente:
 
+bash
+Copiar código
+terraform -v
+2. Configurar a AWS CLI
+Instale a AWS CLI:
 
-# Passos
+CentOS:
+bash
+Copiar código
+sudo yum install awscli -y
+Ubuntu:
+bash
+Copiar código
+sudo apt-get install awscli -y
+Configure a AWS CLI com suas credenciais:
 
-## Parte 1: Configuração na AWS
-•	*Criar uma VPC (project1-vpc)*
-<img src="/imgs/image.png">
+bash
+Copiar código
+aws configure
+Você precisará inserir:
 
-•	*Criar e associar subnet pública (subnet-project1-public1);*
-<img src="/imgs/image1.png">
+AWS Access Key ID
+AWS Secret Access Key
+Default region name (ex: us-east-1)
+Default output format (ex: json)
+Verifique se a AWS CLI está configurada corretamente:
+bash
+Copiar código
+aws sts get-caller-identity
+Como Utilizar o Projeto
+Passos para provisionar a infraestrutura:
+Clone o repositório:
 
-•	*Criar um Internet Gateway (project1-igw01) e associar à VPC "project1-vpc";*
-<img src="/imgs/image2.png">
+bash
+Copiar código
+git clone https://github.com/seu-usuario/seu-repositorio.git
+cd seu-repositorio
+Inicialize o Terraform:
 
-•	*Criar uma Route Table e associar à VPC "project1-vpc";*
-<img src="/imgs/image3.png">
-- Editar Route Table para permitir acesso público, através do Internet Gateway "project1-igw01";
-- Adicionar a subnet "subnet-project1-public1" à Route Table;
+bash
+Copiar código
+terraform init
+Verifique o plano de execução:
 
-•	*Criar uma instância EC2 com Amazon Linux 2 (description="Project1_linux"), família t3.small, storage SSD de 16 GB, par de chaves (aws-servem.pem);*
-<img src="/imgs/image4.png">
-- Associar à VPC e Subnet criadas anteriormente;
-- Criar um Security Group (project1-security-group), liberando as portas especificadas no enunciado da atividade (22/TCP, 111/TCP e UDP, 2049/TCP/UDP, 80/TCP, 443/TCP), via Inbound Security Group Rules;
-<img src="/imgs/image5.png">
-- Criar um par de chaves do tipo .pem "Project1_compass.pem" para acesso via SSH da instancia EC2
+bash
+Copiar código
+terraform plan
+Aplique o plano para provisionar a infraestrutura:
 
-•	*Rodar instância EC2 "Project1_linux";*
+bash
+Copiar código
+terraform apply
+Confirme a execução digitando yes quando solicitado.
 
-•	*Gerar um Elastic IP e anexar à instância EC2.*
-<img src="/imgs/image6.png">
+Arquivo user_data.sh
+O arquivo user_data.sh é usado para montar automaticamente o EFS nas instâncias EC2 assim que elas forem inicializadas. Ele instala os pacotes necessários e realiza a montagem no diretório /mnt/efs.
 
-## Parte 2: Configuração no Linux
-•	*Acessar a Instância EC2 (via SSH: $ ssh -i "Project1_compass.pem" ec2-user@<Elastic_IP>);*
-<img src="/imgs/image7.png">
+Arquivo docker-compose.yml
+O arquivo docker-compose.yml é responsável por subir o contêiner do WordPress em cada instância EC2. Ele é configurado para conectar ao banco de dados RDS e usar o EFS para armazenar os arquivos compartilhados entre as instâncias.
 
-•	*Criar um Sistema de compartilhamento de Arquivos NFS:*
- - Instalar o pacotes nescessarios do NFS server: $ sudo yum install nfs-utils
- - Ativando o servidor NFS: $ sudo systemctl enable nfs-server
- - Iniciando o serviço de NFS: $ sudo systemctl start nfs-server
- - Verificando o Status do NFS: $ sudo systemctl status nfs-server
- - Criando um diretorio <my_name> dentro o /mnt/nfs: $ sudo mkdir -p /mnt/nfs/edilson_maria
-<img src="/imgs/image8.png">
+Variáveis de Ambiente
+As variáveis de ambiente usadas pelo Docker Compose (como as credenciais do banco de dados RDS) estão armazenadas no arquivo .env.
 
-•	*Configure o Sistema de compartilhamento de Arquivos NFS:*
- - Defina as permissões dos ranges de IP que teram acessos ao diretorio NFS:
-  $ sudo vi /etc/exports
- - Adicione o a linha abaixo afirmanado os ranges de IP no diretorio /etc/exports:
-  $ /mnt/nfs_share 192.168.1.0/24(rw,sync,no_root_squash,no_subtree_check)
+Estrutura Modularizada
+O projeto está modularizado da seguinte forma:
 
+Módulos de Instâncias:
+alb: Configura o Load Balancer.
+ec2-auto-scaling: Cria o Auto Scaling Group e as instâncias EC2.
+efs: Provisiona o Elastic File System.
+rds: Cria o banco de dados MySQL no RDS.
+Módulos de Redes:
+security-group: Cria os Security Groups necessários.
+vpc: Provisiona a VPC, subnets, NAT Gateways e tabelas de roteamento.
+Como Destruir a Infraestrutura
+Para remover toda a infraestrutura provisionada, execute o seguinte comando:
 
-•	*Criar um Sistema de compartilhamento de Arquivos EFS na AWS:*
- - Acessar o serviço EFS (Elastic File System);
- - Clicar em Create file system;
- - Atribuir o nome "project1_compass-EFS" ao File System;
- - Escolher a VPC onde está a instância EC2 "Project1_linux".
-
-• *Instalando o facilitado da Amazon-efs-utils para auxiliar na montagem dos EFS:*
- - $ sudo yum install -y amazon-efs-utils
-
-•	*Montar o filesystem EFS:*
- - $ sudo mkdir /mnt/efs
- - $ sudo mount -t nfs4 -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,noresvport <IP_EFS>:/ mnt/efs 
- - Configurar o Montagem Automática: $ echo "<IP_EFS>:/ /mnt/efs nfs4 defaults,_netdev 0 0" | sudo tee -a /etc/fstab
-
-•	*Criar um diretório dentro do filesystem do NFS com meu nome:* 
- - $ sudo mkdir /mnt/efs/<My_Name>
-
-## Parte 3: Instalar e Configurar o Apache
-•	*Instalar o Apache:* 
- - $ sudo yum install -y httpd
-
-•	*Iniciar e habilitar o Apache:* 
- - $ sudo systemctl start httpd 
- - $ sudo systemctl enable httpd
-<img src="/imgs/image9.png">
-
-•	*Criar o script de verificação do estado do servidor Apache:*
-
-    - $ sudo nano /usr/local/bin/status_apache.sh
-
-    - status_apache.sh:
-        #!/bin/bash
-
-        Configurações
-        SERVICE_NAME="Apache"
-        SERVICE_URL="http://localhost:80"
-        NFS_DIR="/mnt/nfs/status"
-        ONLINE_STATUS_FILE="$NFS_DIR/online_status.txt"
-        OFFLINE_STATUS_FILE="$NFS_DIR/offline_status.txt"
-
-        - Cria o diretório no NFS se não existir
-        if [ ! -d "$NFS_DIR" ]; then
-           sudo mkdir -p "$NFS_DIR"
-        fi
-
-        - Verifica se o serviço Apache está online
-        HTTP_STATUS=$(curl -o /dev/null -s -w "%{http_code}\n" $SERVICE_URL)
-
-        - Pega a data e hora atual
-        CURRENT_DATETIME=$(date "+%Y-%m-%d %H:%M:%S")
-
-        if [ "$HTTP_STATUS" -eq 200 ]; then
-          STATUS="ONLINE"
-          MESSAGE="O serviço Apache está funcionando corretamente."
-          echo "$CURRENT_DATETIME - Serviço: $SERVICE_NAME - Status: $STATUS - Mensagem: $MESSAGE" >> $ONLINE_STATUS_FILE
-        else
-        STATUS="OFFLINE"
-        MESSAGE="O serviço Apache está inacessível ou ocorreu um problema."
-        echo "$CURRENT_DATETIME - Serviço: $SERVICE_NAME - Status: $STATUS - Mensagem: $MESSAGE" >> $OFFLINE_STATUS_FILE
-        fi
-<img src="/imgs/image10.png">
-
-•	*Atribuir as permissões de execução do script:*
- - $ sudo chmod +x /usr/local/bin/status_apache.sh
- - $ sudo chown ec2-user:ec2-user /mnt/nfs/<My_Name>
-
-•	*Definindo que a data e a hora seja o de Recife/BR:*
- - $ sudo timedatectl set-timezone America/Recife
-  
-•	*Automatizar a execução do script a cada 5 minutos:*
- - $ sudo crontab -e
- - Adicionar ao crontab: */5 * * * * /usr/local/bin/status_apache.sh
-<img src="/imgs/image11.png">
-
-## Parte 4: Colocar uma pagina WEB no servidor Apache
-
-•	*Acessando o diretorio apache para colocar os arquivos HTML e CSS:*
- - $ cd /var/www/html
-
-•	*Crie o rquivo HTML no diretorio /var/www/html:*
- - $ sudo nano index.html
-<img src="/imgs/image12.png">
-
-•	*Crie o rquivo CSS no diretorio /var/www/html:*
- - $ sudo nano styles.html
-<img src="/imgs/image13.png">
-
-•	*Acessando o sit WEB no servidor apache:*
- - No navegador coloque o IP Publico da instacia EC2 da AWS
-<img src="/imgs/image14.png">
-
-
-
-
-
-[def]: image.png
+bash
+Copiar código
+terraform destroy
+Licença
+Este projeto está licenciado sob os termos da licença MIT. Consulte o arquivo LICENSE para mais detalhes.
