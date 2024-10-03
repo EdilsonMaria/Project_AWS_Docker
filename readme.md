@@ -7,7 +7,7 @@ Este projeto utiliza **Infrastructure as Code (IaC)** com **Terraform** para pro
 
 ```
 .
-├── main.tf               # Arquivo principal que chama os módulos
+├── main.tf                # Arquivo principal que chama os módulos
 ├── docker-compose.yml     # Arquivo Docker Compose para rodar o WordPress nas instâncias EC2
 ├── .env                   # Arquivo de variáveis de ambiente para o Docker Compose
 ├── user_data.sh           # Script para montagem do EFS nas instâncias EC2
@@ -60,14 +60,14 @@ O projeto provisiona a seguinte infraestrutura na AWS:
    - 2 subnets privadas (uma em cada AZ)
 2. **Internet Gateway** para as subnets públicas e **NAT Gateway** para as subnets privadas (uma para cada AZ)
 3. **Tabelas de roteamento** para as subnets públicas e privadas:
-   - As subnets públicas roteam tráfego para o Internet Gateway
+   - As subnets públicas roteam tráfego de internet pelo Internet Gateway
    - As subnets privadas têm acesso à Internet através do NAT Gateway
 4. **VPC Endpoint** para permitir o acesso às instâncias EC2 privadas sem IP público, dispensando o uso de Bastion Hosts
 5. **4 Security Groups** para:
-   - Instâncias EC2 (acesso SSH e tráfego de HTTP/HTTPS)
-   - Banco de dados RDS (acesso ao MySQL)
-   - EFS (para compartilhamento de arquivos)
-   - Endpoint (para comunicação interna)
+   - Instâncias EC2 (acesso SSH, tráfego de HTTP/HTTPS para o Load Balancer)
+   - Banco de dados RDS (acesso do MySQL as instancias EC2)
+   - EFS (para compartilhamento de arquivos com as instancias EC2)
+   - Load Balancer (acesso ao tráfego de HTTP/HTTPS para a internet)
 6. **EFS (Elastic File System)** para compartilhamento de arquivos entre as instâncias EC2
 7. **Auto Scaling Group** para gerenciar instâncias EC2 com balanceamento de carga
 8. **Banco de dados RDS (MySQL)** para armazenar dados do WordPress
@@ -136,7 +136,7 @@ aws sts get-caller-identity
 
 1. **Clone o repositório**:
    ```bash
-   git clone https://github.com/seu-usuario/seu-repositorio.git
+   git clone https://github.com/EdilsonMaria/Project_AWS_Docker
    cd seu-repositorio
    ```
 
@@ -158,7 +158,7 @@ aws sts get-caller-identity
 
 ### Arquivo `user_data.sh`
 
-O arquivo `user_data.sh` é usado para montar automaticamente o EFS nas instâncias EC2 assim que elas forem inicializadas. Ele instala os pacotes necessários e realiza a montagem no diretório `/mnt/efs`.
+O arquivo `user_data.sh` é responavel por fazer o update da maquina linux EC2, instalar o docker e docker-compose, garatir que esses serviços sempre estejam ativos no sistema linux, atualizar a hora da maquina linux EC2, instalar o nfs-utils e o amazon-efs-utils, montar o diretório /mnt/efs para o AWS EFS, instalar o git, clonar do repositório público do github o `https://github.com/EdilsonMaria/Docker-Compose_WordPress.git` o docker-compose.yml e as variaveis de ambiente .env, e por fim executar o container docker com o comando `docker-compose up -d`
 
 ### Arquivo `docker-compose.yml`
 
