@@ -80,7 +80,7 @@ O projeto provisiona a seguinte infraestrutura na AWS:
 ### 4. VPC Endpoint
 - Um **VPC Endpoint** é configurado para as instâncias EC2 nas subnets privadas, permitindo acesso a serviços da AWS sem a necessidade de IP público, dispensando o uso de Bastion Hosts.
 
-## Recursos Terraform Utilizados
+#### Recursos Terraform Utilizados
 
 - **VPC**: `aws_vpc`
 - **Subnets**: `aws_subnet` (públicas e privadas)
@@ -115,14 +115,13 @@ O projeto provisiona a seguinte infraestrutura na AWS:
 - **Permissões**:
   - **HTTP/HTTPS** (portas 80 e 443) aberto para a internet.
 
-## Recursos Terraform Utilizados
+#### Recursos Terraform Utilizados
 - **Security Group do Load Balancer**: `aws_security_group.alb-SG`
 - **Security Group das Instâncias EC2**: `aws_security_group.ec2-SG`
 - **Security Group do RDS**: `aws_security_group.rds-SG`
 - **Security Group do EFS**: `aws_security_group.end-SG`
 
 ### 9. Load Balancer (Application Load Balancer)
-- **Tipo**: Application Load Balancer
 - **Função**: Distribuir o tráfego HTTP entre as instâncias EC2.
 - **Configurações**:
   - **Subnets**: Associado a subnets públicas.
@@ -297,6 +296,71 @@ Para remover toda a infraestrutura provisionada, execute o seguinte comando:
 ```bash
 terraform destroy
 ```
+
+## Passos de como ficará o seu ambiente na cloud AWS
+
+•	*1 - Criação da VPC com o mapa de recursos para as Subnets, Tabela de Roteamento e Conexões e Rede*
+<img src="/imgs/image.png">
+
+•	*2 - criação das subnets privadas e publicas em AZ's us-east-1a e us-east-1b*
+<img src="/imgs/image1.png">
+
+•	*3 - Tabela de roteamento, uma para cada tipo de subnets, privada e publica em suas diferentes AZ's*
+<img src="/imgs/image2.png">
+
+•	*4 - Internet gateways atrelados a VPC e as duas subnetes publicas permitindo acesso a internet*
+<img src="/imgs/image3.png">
+
+•	*5 - Elastic IP atrelados um a cada Nat Gateways das AZ's diferentes*
+<img src="/imgs/image4.png">
+
+•	*6 - Nat Gateways atrelados um a cada subnet privada permitindo a saida para internet de forma segura e assegurando a não permissão de entrada*
+<img src="/imgs/image5.png">
+
+•	*7 - Criação do Endpoint para permitir acesso as EC2 que estiverem em subnetes privadas e sem ip publico*
+<img src="/imgs/image6.png">
+
+•	*8 - Criação das Security Group para EC2, Endpoint, RDS e Load Balance*
+<img src="/imgs/image7.png">
+
+•	*9 - Criação do Lounch Templete para o Auto Scaling das instnaicas EC2*
+<img src="/imgs/image8.png">
+
+•	*10 - Criação do Auto Scaling permitindo o scaling up e scaling down* 
+<img src="/imgs/image9.png">
+
+•	*11 - Criação pelo Auto Scaling das instancias EC2 uma em cada subnet privada e em diferentes AZ's* 
+<img src="/imgs/image10.png">
+
+•	*12 - Instancia 1-WordPress com os logs do container, mostrando a Response 200 para o Healthkecker configurado* 
+<img src="/imgs/image11.png">
+
+•	*13 - Instancia 1-WorpPress na subnet privada 1 na zona de disponibilidade 1a com o EFS montado*
+<img src="/imgs/image12.png">
+
+•	*14 - Instancia 2-WordPress com os logs do container, mostrando a configuração ok do HeathChecker e as requisições do load balancer ao acessar pelo cliente navegador*
+<img src="/imgs/image13.png">
+
+•	*15 - Criação do Load Balancer, para distribuir as requisões entre as duas instncicas EC2 nas AZ's diferentes*
+<img src="/imgs/image14.png">
+
+•	*16 - Target Group atrelado ao Load Balance, mostrando que as requisições da HTTP para EC2 estão sudaveis* 
+<img src="/imgs/image15.png">
+
+•	*17 - Configuração do Health Checks* 
+<img src="/imgs/image16.png">
+
+•	*18 - Servirço do Load Balance acessadno as intancias e expondo de forma publica do serviço do WordPress rodando dentro do contanier docker* 
+<img src="/imgs/image17.png">
+
+•	*19 - Comando terraform init para iniciar o servidor da hashicorp e as dependencias de provedor(AWS)* 
+<img src="/imgs/image18.png">
+
+•	*20 - Comando plan que mostra a saida de todos os servirços a serem startados* 
+<img src="/imgs/image19.png">
+
+•	*21 - Comando terraform destroy para apagar todos os recurso de forma automatico que foi iniciado anterioemente* 
+<img src="/imgs/image20.png">
 
 ## Licença
 

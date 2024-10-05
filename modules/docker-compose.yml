@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   wordpress:
-    image: wordpress:latest
+    image: wordpress:6.3
     container_name: wordpress
     restart: always
     ports:
@@ -17,6 +17,16 @@ services:
       - /mnt/efs:/var/www/html  
     networks:
       - wp-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost"]
+      interval: 1m30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
 
 networks:
   wp-network:
