@@ -55,24 +55,132 @@ Este projeto utiliza **Infrastructure as Code (IaC)** com **Terraform** para pro
 ## Funcionalidade
 
 O projeto provisiona a seguinte infraestrutura na AWS:
-1. **VPC** com 4 subnets:
-   - 2 subnets públicas (uma em cada AZ)
-   - 2 subnets privadas (uma em cada AZ)
-2. **Internet Gateway** para as subnets públicas e **NAT Gateway** para as subnets privadas (uma para cada AZ)
-3. **Tabelas de roteamento** para as subnets públicas e privadas:
-   - As subnets públicas roteam tráfego de internet pelo Internet Gateway
-   - As subnets privadas têm acesso à Internet através do NAT Gateway
-4. **VPC Endpoint** para permitir o acesso às instâncias EC2 privadas sem IP público, dispensando o uso de Bastion Hosts
-5. **4 Security Groups** para:
-   - Instâncias EC2 (acesso SSH, tráfego de HTTP/HTTPS para o Load Balancer)
-   - Banco de dados RDS (acesso do MySQL as instancias EC2)
-   - EFS (para compartilhamento de arquivos com as instancias EC2)
-   - Load Balancer (acesso ao tráfego de HTTP/HTTPS para a internet)
-6. **EFS (Elastic File System)** para compartilhamento de arquivos entre as instâncias EC2
-7. **Auto Scaling Group** para gerenciar instâncias EC2 com balanceamento de carga
-8. **Banco de dados RDS (MySQL)** para armazenar dados do WordPress
-9. **Application Load Balancer (ALB)** para distribuir o tráfego entre as instâncias EC2 privadas
-10. As instâncias EC2 são provisionadas para rodar o WordPress em contêineres Docker, com pastas públicas compartilhadas através do **EFS**, conectadas ao banco de dados RDS.
+### 1. VPC
+- Criação de uma **VPC** com o bloco CIDR `10.0.0.0/16`.
+- **Subnets**:
+  - **2 subnets públicas**:
+    - Subnet pública 1: `10.0.10.0/24` (AZ: us-east-1a)
+    - Subnet pública 2: `10.0.11.0/24` (AZ: us-east-1b)
+  - **2 subnets privadas**:
+    - Subnet privada 1: `10.0.1.0/24` (AZ: us-east-1a)
+    - Subnet privada 2: `10.0.2.0/24` (AZ: us-east-1b)
+
+### 2. Internet Gateway e NAT Gateway
+- Um **Internet Gateway** é associado à VPC, permitindo acesso à internet para as subnets públicas.
+- Dois **NAT Gateways** são configurados para fornecer acesso à internet para as subnets privadas:
+  - NAT Gateway 1 (us-east-1a) usando Elastic IP.
+  - NAT Gateway 2 (us-east-1b) usando Elastic IP.
+
+### 3. Tabelas de Roteamento
+- **Tabelas de Roteamento para as subnets públicas**:
+  - O tráfego externo é roteado pelo **Internet Gateway**.
+- **Tabelas de Roteamento para as subnets privadas**:
+  - O tráfego de saída é roteado através dos **NAT Gateways**.
+
+### 4. VPC Endpoint
+- Um **VPC Endpoint** é configurado para as instâncias EC2 nas subnets privadas, permitindo acesso a serviços da AWS sem a necessidade de IP público, dispensando o uso de Bastion Hosts.
+
+## Recursos Terraform Utilizados
+
+- **VPC**: `aws_vpc`
+- **Subnets**: `aws_subnet` (públicas e privadas)
+- **Internet Gateway**: `aws_internet_gateway`
+- **Elastic IP**: `aws_eip` (para os NAT Gateways)
+- **NAT Gateway**: `aws_nat_gateway`
+- **Tabelas de Roteamento**: `aws_route_table`
+- **Rotas**: `aws_route`
+- **Associações de Tabelas de Roteamento**: `aws_route_table_association`
+- **VPC Endpoint**: `aws_ec2_instance_connect_endpoint`
+
+### 5. Security Group para Instâncias EC2
+- **Função**: Controla o acesso às instâncias EC2.
+- **Permissões**:
+  - **SSH** (porta 22) aberto para a internet.
+  - **HTTP/HTTPS** (portas 80 e 443) a partir do Load Balancer.
+  - **MySQL** (porta 3306) a partir do RDS dentro da VPC.
+  - **EFS** (porta 2049) para compartilhamento de arquivos entre as instâncias EC2.
+
+### 6. Security Group para o RDS (Banco de Dados)
+- **Função**: Controla o acesso ao banco de dados RDS (MySQL).
+- **Permissões**:
+  - **MySQL** (porta 3306) acessível apenas pelas instâncias EC2 dentro da VPC.
+
+### 7. Security Group para o EFS
+- **Função**: Permite o compartilhamento de arquivos entre as instâncias EC2.
+- **Permissões**:
+  - **NFS** (porta 2049) acessível dentro da VPC.
+
+### 8. Security Group para o Load Balancer
+- **Função**: Controla o tráfego de entrada para o Load Balancer.
+- **Permissões**:
+  - **HTTP/HTTPS** (portas 80 e 443) aberto para a internet.
+
+## Recursos Terraform Utilizados
+- **Security Group do Load Balancer**: `aws_security_group.alb-SG`
+- **Security Group das Instâncias EC2**: `aws_security_group.ec2-SG`
+- **Security Group do RDS**: `aws_security_group.rds-SG`
+- **Security Group do EFS**: `aws_security_group.end-SG`
+
+### 9. Load Balancer (Application Load Balancer)
+- **Tipo**: Application Load Balancer
+- **Função**: Distribuir o tráfego HTTP entre as instâncias EC2.
+- **Configurações**:
+  - **Subnets**: Associado a subnets públicas.
+  - **Segurança**: Usa o Security Group do Load Balancer para permitir tráfego HTTP e HTTPS.
+  - **Cross-Zone Load Balancing**: Habilitado para distribuir o tráfego entre todas as zonas de disponibilidade.
+
+### 10. Target Group
+- **Função**: Gerenciar as instâncias EC2 que recebem o tráfego do Load Balancer.
+- **Configurações**:
+  - Porta **80** para tráfego HTTP.
+  - **Health Check** configurado no caminho `/wp-admin/install.php`.
+
+### 11. Listener HTTP
+- **Função**: Escuta o tráfego HTTP na porta 80 e o direciona para o Target Group.
+- **Configuração**: Listener na porta **80** com protocolo **HTTP**, ação de **forward** para o Target Group.
+
+### 12. Launch Template
+- **Função**: Define a configuração das instâncias EC2 lançadas pelo Auto Scaling.
+- **Configurações**:
+  - **AMI** e **Tipo de Instância**.
+  - **User Data** para configurar as instâncias no início (instalação de Docker, etc.).
+  - **Disco EBS** de 8 GB e tipo **gp2**.
+  - Usa o **Security Group das EC2**.
+
+### 13. Auto Scaling Group
+- **Função**: Gerencia o número de instâncias EC2 conforme a demanda.
+- **Configurações**:
+  - Capacidade mínima de **1** e máxima de **2** instâncias.
+  - Usa subnets privadas.
+  - Associado ao Target Group para receber tráfego do Load Balancer.
+
+### 14. Políticas de Auto Scaling
+- **Scale Up**: Aumenta em 1 instância quando a demanda cresce.
+- **Scale Down**: Reduz em 1 instância quando a demanda diminui.
+
+### 15. Elastic File System (EFS)
+- **Função**: O EFS permite o compartilhamento de arquivos entre as instâncias EC2, garantindo que as instâncias no Auto Scaling possam acessar os mesmos dados persistentes.
+- **Configurações**:
+  - Um sistema de arquivos EFS é provisionado com uma política de ciclo de vida que move os dados para a classe de armazenamento "infrequent access" após 30 dias de inatividade.
+  - **Mount Targets** são configurados nas subnets privadas para que as instâncias EC2 possam acessar o EFS via NFS (porta 2049).
+  - O acesso ao EFS é controlado pelo **Security Group** que permite tráfego na porta 2049 para NFS.
+
+#### Recursos Terraform Utilizados:
+- **EFS**: `aws_efs_file_system.wordpress-efs`
+- **Mount Targets**: 
+  - `aws_efs_mount_target.subnet-privada1-efs-mount-target`
+  - `aws_efs_mount_target.subnet-privada2-efs-mount-target`
+
+### 16. RDS (MySQL)
+- **Função**: O banco de dados MySQL gerenciado pelo RDS é utilizado para armazenar os dados persistentes da aplicação WordPress.
+- **Configurações**:
+  - Um banco de dados MySQL é provisionado com 20 GB de armazenamento em disco do tipo **gp2**.
+  - Está associado a um **Security Group** que controla o acesso ao banco de dados via a porta 3306 (MySQL).
+  - O banco de dados utiliza um **DB Subnet Group** com subnets privadas, garantindo que o RDS seja acessível apenas por instâncias dentro da VPC.
+
+#### Recursos Terraform Utilizados:
+- **RDS (MySQL)**: `aws_db_instance.wordpress-db`
+- **DB Subnet Group**: `aws_db_subnet_group.wordpress-db-subnet-group`
 
 ## Pré-requisitos
 
