@@ -1,4 +1,6 @@
-# Criar o EFS
+# --------------------------------------
+# ELASTIC FILE SYSTEM
+# --------------------------------------
 resource "aws_efs_file_system" "wordpress-efs" {
   creation_token = "wordpress-efs"
   lifecycle_policy {
@@ -9,7 +11,9 @@ resource "aws_efs_file_system" "wordpress-efs" {
   }
 }
 
-# Criar os Mount Targets para EFS nas subnet privada 1 da VPC
+# --------------------------------------
+# MOUNT TARGETS 
+# --------------------------------------
 resource "aws_efs_mount_target" "subnet-privada1-efs-mount-target" {
   file_system_id  = aws_efs_file_system.wordpress-efs.id
   subnet_id       = var.subnet-project2-privada1

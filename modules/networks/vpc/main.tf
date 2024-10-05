@@ -1,4 +1,6 @@
-#VPC PRINCIPAL
+# --------------------------------------
+# VPC
+# --------------------------------------
 resource "aws_vpc" "project2-vpc" {
   cidr_block           = "10.0.0.0/16"
   enable_dns_hostnames = true
@@ -7,7 +9,9 @@ resource "aws_vpc" "project2-vpc" {
   }
 }
 
-#SUB REDE PRIVADA
+# --------------------------------------
+# SUBNET PRIVATE
+# --------------------------------------
 resource "aws_subnet" "subnet-project2-privada1" {
   vpc_id            = aws_vpc.project2-vpc.id
   cidr_block        = "10.0.1.0/24"
@@ -24,6 +28,10 @@ resource "aws_subnet" "subnet-project2-privada2" {
     Name = "subnet-project2-privada2"
   }
 }
+
+# --------------------------------------
+# SUBNET PUBLIC
+# --------------------------------------
 resource "aws_subnet" "subnet-project2-publica1" {
   vpc_id            = aws_vpc.project2-vpc.id
   cidr_block        = "10.0.10.0/24"
@@ -41,7 +49,9 @@ resource "aws_subnet" "subnet-project2-publica2" {
   }
 }
 
-#INTERNET GATEWAY
+# --------------------------------------
+# INTERNET GATEWAY
+# --------------------------------------
 resource "aws_internet_gateway" "project2-igw01" {
   vpc_id = aws_vpc.project2-vpc.id
   tags = {
@@ -49,7 +59,9 @@ resource "aws_internet_gateway" "project2-igw01" {
   }
 }
 
-#IPS ELASTICOS DA ZONA A E B
+# --------------------------------------
+# ELASTIC IPS DA ZONA A E B
+# --------------------------------------
 resource "aws_eip" "nat-gateway-eip-project2a" {
   tags = {
     Name = "ip-elastico-project2a"
@@ -61,7 +73,9 @@ resource "aws_eip" "nat-gateway-eip-project2b" {
   }
 }
 
-#NAT GATEWAY
+# --------------------------------------
+# NAT GATEWAY
+# --------------------------------------
 resource "aws_nat_gateway" "nat-gateway-project2a" {
   allocation_id = aws_eip.nat-gateway-eip-project2a.id
   subnet_id     = aws_subnet.subnet-project2-publica1.id
@@ -77,7 +91,9 @@ resource "aws_nat_gateway" "nat-gateway-project2b" {
   }
 }
 
-#CRIAÇÃO TABELA DE ROTAS SUB-REDES PRIVADAS A E B
+# --------------------------------------
+# CRIAÇÃO ROUTE TABLE PRIVATE A E B
+# --------------------------------------
 resource "aws_route_table" "rtb-private-project2a" {
   vpc_id = aws_vpc.project2-vpc.id
   tags = {
@@ -91,7 +107,9 @@ resource "aws_route_table" "rtb-private-project2b" {
   }
 }
 
-#ASSOCIAÇÃO TABELA DE ROTAS PRIVADA DA SUB-REDE A e B
+# --------------------------------------
+# ASSOCIAÇÃO ROUTE TABLE PRIVATE SUBNET PRIVATE A e B
+# --------------------------------------
 resource "aws_route_table_association" "roteamento-privado-a" {
   subnet_id      = aws_subnet.subnet-project2-privada1.id
   route_table_id = aws_route_table.rtb-private-project2a.id
@@ -101,7 +119,9 @@ resource "aws_route_table_association" "roteamento-privado-b" {
   route_table_id = aws_route_table.rtb-private-project2b.id
 }
 
-#ROTEAMENTO INTERNO SAIDA PARA A INTERNET DA SUB-REDE A
+# --------------------------------------
+# ROTEAMENTO INTERNO SAIDA PARA A INTERNET DA SUBNET A
+# --------------------------------------
 resource "aws_route" "rota-padrao-privada-subnet-a" {
   route_table_id         = aws_route_table.rtb-private-project2a.id
   destination_cidr_block = "0.0.0.0/0"
@@ -110,7 +130,9 @@ resource "aws_route" "rota-padrao-privada-subnet-a" {
   depends_on     = [aws_nat_gateway.nat-gateway-project2a]
 }
 
-#ROTEAMENTO INTERNO SAIDA PARA A INTERNET DA SUB-REDE B
+# --------------------------------------
+# ROTEAMENTO INTERNO SAIDA PARA A INTERNET DA SUBNET B
+# --------------------------------------
 resource "aws_route" "rota-padrao-privada-subnet-b" {
   route_table_id         = aws_route_table.rtb-private-project2b.id
   destination_cidr_block = "0.0.0.0/0"
@@ -119,7 +141,9 @@ resource "aws_route" "rota-padrao-privada-subnet-b" {
   depends_on     = [aws_nat_gateway.nat-gateway-project2b]
 }
 
-#CRIAÇÃO TABELA DE ROTAS SUB-REDES PUBLICAS A E B
+# --------------------------------------
+# CRIAÇÃO ROUTE TABLE PUBLIC A E B
+# --------------------------------------
 resource "aws_route_table" "rtb-publica-project2a" {
   vpc_id = aws_vpc.project2-vpc.id
   tags = {
@@ -133,7 +157,9 @@ resource "aws_route_table" "rtb-publica-project2b" {
   }
 }
 
-#ASSOCIAÇÃO TABELA DE ROTAS PUBLICAS DA SUB-REDE A e B
+# --------------------------------------
+# ASSOCIAÇÃO ROUTE TABLE PRIVATE SUBNET PUBLIC A e B
+# --------------------------------------
 resource "aws_route_table_association" "roteamento-publico-a" {
   subnet_id      = aws_subnet.subnet-project2-publica1.id
   route_table_id = aws_route_table.rtb-publica-project2a.id
@@ -143,7 +169,9 @@ resource "aws_route_table_association" "roteamento-publico-b" {
   route_table_id = aws_route_table.rtb-publica-project2b.id
 }
 
-#ROTEAMENTO EXTERNO SAIDA PARA A INTERNET DA SUB-REDE A
+# --------------------------------------
+# ROTEAMENTO EXTERNO SAIDA PARA A INTERNET DA SUBNET A
+# --------------------------------------
 resource "aws_route" "rota-padrao-publica-subnet-a" {
   route_table_id         = aws_route_table.rtb-publica-project2a.id
   destination_cidr_block = "0.0.0.0/0"
@@ -151,7 +179,9 @@ resource "aws_route" "rota-padrao-publica-subnet-a" {
   gateway_id = aws_internet_gateway.project2-igw01.id
 }
 
-#ROTEAMENTO EXTERNO SAIDA PARA A INTERNET DA SUB-REDE B
+# --------------------------------------
+# ROTEAMENTO EXTERNO SAIDA PARA A INTERNET DA SUBNET B
+# --------------------------------------
 resource "aws_route" "rota-padrao-publica-subnet-b" {
   route_table_id         = aws_route_table.rtb-publica-project2b.id
   destination_cidr_block = "0.0.0.0/0"
@@ -159,7 +189,9 @@ resource "aws_route" "rota-padrao-publica-subnet-b" {
   gateway_id = aws_internet_gateway.project2-igw01.id
 }
 
-#CRIANDO UM VPC ENDPOINT P/ ACESSAR EC2 EM SUBNET PRIVADA
+# --------------------------------------
+# VPC ENDPOINT
+# --------------------------------------
 resource "aws_ec2_instance_connect_endpoint" "wordpress-endpoint" {
   subnet_id          = aws_subnet.subnet-project2-publica1.id
   security_group_ids = [var.end_SG]

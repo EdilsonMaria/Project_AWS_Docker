@@ -1,4 +1,6 @@
-#CRIAÇÃO ELASTC LOAD BALANCE ELB
+# --------------------------------------
+# ELASTC LOAD BALANCE ELB
+# --------------------------------------
 resource "aws_lb" "wordpress-lb" {
   name               = "wordpress-lb"
   internal           = false
@@ -16,7 +18,9 @@ resource "aws_lb" "wordpress-lb" {
   }
 }
 
-# Criar o Target Group (Grupo de Alvos) para as instâncias EC2
+# --------------------------------------
+# Target Group 
+# --------------------------------------
 resource "aws_lb_target_group" "wordpress-target-group" {
   name     = "wordpress-target-group"
   port     = 80
@@ -37,7 +41,9 @@ resource "aws_lb_target_group" "wordpress-target-group" {
   }
 }
 
-# Vincular o Target Group ao Load Balancer por meio de um Listener HTTP
+# --------------------------------------
+# LISTENER HTTP
+# --------------------------------------
 resource "aws_lb_listener" "wordpress_http_listener" {
   load_balancer_arn = aws_lb.wordpress-lb.arn
   port              = 80

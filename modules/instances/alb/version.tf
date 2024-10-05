@@ -1,4 +1,6 @@
-# Definição da versão do provedor
+# --------------------------------------
+# PROVIDER VERSION 
+# --------------------------------------
 terraform {
   required_version = "1.9.6"
 

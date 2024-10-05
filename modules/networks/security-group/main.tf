@@ -1,4 +1,6 @@
-# CRIAÇÃO DE SECURITY GROUP DO ALB.
+# --------------------------------------
+# SECURITY GROUP DO LOAD BALANCER
+# --------------------------------------
 resource "aws_security_group" "alb-SG" {
   name   = "alb-SG"
   vpc_id = var.vpc_id
@@ -27,7 +29,9 @@ resource "aws_security_group" "alb-SG" {
   }
 }
 
-# CRIAÇÃO DE SECURITY GROUP DA EC2 (WordPress)
+# --------------------------------------
+# SECURITY GROUP DA EC2/AUTO-SCALING
+# --------------------------------------
 resource "aws_security_group" "ec2-SG" {
   name   = "ec2-SG"
   vpc_id = var.vpc_id
@@ -79,7 +83,9 @@ resource "aws_security_group" "ec2-SG" {
   }
 }
 
-# CRIAÇÃO DE SECURITY GROUP DO RDS (MySQL)
+# --------------------------------------
+# SECURITY GROUP DO RDS 
+# --------------------------------------
 resource "aws_security_group" "rds-SG" {
   name   = "rds-SG"
   vpc_id = var.vpc_id
@@ -103,7 +109,9 @@ resource "aws_security_group" "rds-SG" {
   }
 }
 
-# CRIAÇÃO DE SECURITY GROUP INSTANCE CONECT
+# --------------------------------------
+# SECURITY GROUP ENDPOINT
+# --------------------------------------
 resource "aws_security_group" "end-SG" {
   name   = "end-SG"
   vpc_id = var.vpc_id

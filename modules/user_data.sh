@@ -25,6 +25,10 @@ sudo yum install -y amazon-efs-utils
 
 sudo mkdir -p /mnt/efs # Cria um diretorio para o ponto de montagem
 
+sudo yum install -y yum-utils # Instala o terraform na maquina
+sudo yum-config-manager --add-repo https://rpm.releases.hashicorp.com/AmazonLinux/hashicorp.repo
+sudo yum -y install terraform
+
 EFS_DNS=$(terraform output -raw efs_dns) # Variáveis do EFS
 
 sudo mount -t efs -o tls ${EFS_DNS}:/ /mnt/efs

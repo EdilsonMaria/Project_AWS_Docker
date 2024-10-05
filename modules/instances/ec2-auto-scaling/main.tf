@@ -1,28 +1,34 @@
 #Gerar um par de chaves SSH para acessar a instância
-resource "tls_private_key" "chave-RSA" {
-  algorithm = "RSA"
-  rsa_bits  = 4096
-}
+#resource "tls_private_key" "chave-RSA" {
+#  algorithm = "RSA"
+#  rsa_bits  = 4096
+#}
 
 # Salvar a chave pública no AWS EC2
-resource "aws_key_pair" "ssh-key" {
-  key_name   = "project2-compass"
-  public_key = tls_private_key.chave-RSA.public_key_openssh
+#resource "aws_key_pair" "ssh-key" {
+#  key_name   = "project2-compass"
+#  public_key = tls_private_key.chave-RSA.public_key_openssh
+#}
+
+#resource "local_file" "private-key" {
+#  content  = tls_private_key.chave-RSA.private_key_pem
+#  filename = "${path.module}/../../project2-compass.pem"
+#}
+
+resource "time_sleep" "wait_time" {
+  create_duration = "350s"  
 }
 
-resource "local_file" "private-key" {
-  content  = tls_private_key.chave-RSA.private_key_pem
-  filename = "${path.module}/../../project2-compass.pem"
-}
-
-#CRIAÇÃO DO LAUNCH TEMPLATE PARA EC2 NO AUTO SCALING
+# --------------------------------------
+# LAUNCH TEMPLATE 
+# --------------------------------------
 resource "aws_launch_template" "ec2-template" {
-  depends_on = [var.rds_instance_id, var.efs_id]
+  depends_on = [var.rds_instance_id, var.efs_id, time_sleep.wait_time]
 
   name          = "wordpress-launch-template"
   image_id      = var.ami
   instance_type = var.instance_type
-  key_name      = aws_key_pair.ssh-key.key_name
+  #key_name      = aws_key_pair.ssh-key.key_name
 
   user_data = filebase64("./user_data.sh")
 
@@ -60,14 +66,16 @@ resource "aws_launch_template" "ec2-template" {
   }
 }
 
-# Grupo de Auto Scaling (ASG)
+# --------------------------------------
+# AUTO SCALING
+# --------------------------------------
 resource "aws_autoscaling_group" "wordpress-auto-scaling" {
   depends_on = [var.rds_instance_id, var.efs_id]
 
   name                      = "wordpress-auto-scaling"
-  desired_capacity          = 2
-  min_size                  = 2
-  max_size                  = 4
+  desired_capacity          = 1
+  min_size                  = 1
+  max_size                  = 2
   vpc_zone_identifier       = [var.subnet-project2-privada1.id, var.subnet-project2-privada2.id]
   target_group_arns         = [var.wordpress_target_group]
   health_check_grace_period = 300
@@ -85,7 +93,9 @@ resource "aws_autoscaling_group" "wordpress-auto-scaling" {
   }
 }
 
-# Anexar políticas de Auto Scaling
+# --------------------------------------
+# POLICES AUTO SCALING
+# --------------------------------------
 resource "aws_autoscaling_policy" "scale-up" {
   name                   = "scale-up"
   autoscaling_group_name = aws_autoscaling_group.wordpress-auto-scaling.id
