@@ -3,6 +3,10 @@
 
 Este projeto utiliza **Infrastructure as Code (IaC)** com **Terraform** para provisionar uma infraestrutura completa na AWS. A infraestrutura permite o deployment de um ambiente **WordPress** em instâncias EC2 sem IP público, distribuídas em diferentes **Availability Zones (AZs)**, conectadas a um banco de dados MySQL no **RDS**, com pastas compartilhadas usando **EFS**, suporte a **Auto Scaling** e balanceamento de carga com **ALB (Application Load Balancer)**.
 
+## Topologia do Projeto
+<img src="/imgs/image21.png">
+
+
 ## Estrutura do Projeto
 
 ```
