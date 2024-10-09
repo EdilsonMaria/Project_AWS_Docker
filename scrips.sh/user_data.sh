@@ -25,11 +25,11 @@ sudo yum install -y amazon-efs-utils
 
 sudo mkdir -p /mnt/efs # Cria um diretorio para o ponto de montagem
 
-EFS_DNS=$(terraform output -raw efs_dns) # Variáveis do EFS
+EFS_ID=$(terraform output -raw efs_id) # Variáveis do EFS
 
-sudo mount -t efs -o tls ${EFS_DNS}:/ /mnt/efs
+sudo mount -t efs -o tls ${EFS_ID}:/ /mnt/efs
 
-echo "${EFS_DNS}:/ /mnt/efs efs defaults,_netdev 0 0" | sudo tee -a /etc/fstab # Adicionar a montagem ao fstab para persistência
+echo "${EFS_ID}:/ /mnt/efs efs defaults,_netdev 0 0" | sudo tee -a /etc/fstab # Adicionar a montagem ao fstab para persistência
 
 sudo yum install git -y # Instalando o git na maquina
 

@@ -1,10 +1,14 @@
+# --------------------------------------
 #Gerar um par de chaves SSH para acessar a instância
+# --------------------------------------
 #resource "tls_private_key" "chave-RSA" {
 #  algorithm = "RSA"
 #  rsa_bits  = 4096
 #}
 
+# --------------------------------------
 # Salvar a chave pública no AWS EC2
+# --------------------------------------
 #resource "aws_key_pair" "ssh-key" {
 #  key_name   = "project2-compass"
 #  public_key = tls_private_key.chave-RSA.public_key_openssh
@@ -15,13 +19,13 @@
 #  filename = "${path.module}/../../project2-compass.pem"
 #}
 
-resource "time_sleep" "wait_time" {
-  create_duration = "350s"  
-}
-
 # --------------------------------------
 # LAUNCH TEMPLATE 
 # --------------------------------------
+resource "time_sleep" "wait_time" {
+  create_duration = "400s"  
+}
+
 resource "aws_launch_template" "ec2-template" {
   depends_on = [var.rds_instance_id, var.efs_id, time_sleep.wait_time]
 
@@ -73,9 +77,9 @@ resource "aws_autoscaling_group" "wordpress-auto-scaling" {
   depends_on = [var.rds_instance_id, var.efs_id]
 
   name                      = "wordpress-auto-scaling"
-  desired_capacity          = 1
-  min_size                  = 1
-  max_size                  = 2
+  desired_capacity          = 2
+  min_size                  = 2
+  max_size                  = 3
   vpc_zone_identifier       = [var.subnet-project2-privada1.id, var.subnet-project2-privada2.id]
   target_group_arns         = [var.wordpress_target_group]
   health_check_grace_period = 300

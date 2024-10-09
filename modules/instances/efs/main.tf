@@ -9,6 +9,7 @@ resource "aws_efs_file_system" "wordpress-efs" {
   tags = {
     Name = "wordpress-efs"
   }
+
 }
 
 # --------------------------------------
