@@ -269,7 +269,7 @@ aws sts get-caller-identity
 
 ### Arquivo `user_data.sh`
 
-O arquivo `user_data.sh` é responavel por fazer o update da maquina linux EC2, instalar o docker e docker-compose, garatir que esses serviços sempre estejam ativos no sistema linux, atualizar a hora da maquina linux EC2, instalar o nfs-utils e o amazon-efs-utils, montar o diretório /mnt/efs para o AWS EFS, instalar o git, clonar do repositório público do github o `https://github.com/EdilsonMaria/Docker-Compose_WordPress.git` o docker-compose.yml e as variaveis de ambiente .env, e por fim executar o container docker com o comando `docker-compose up -d`
+O arquivo `user_data.sh` é responavel por fazer o update da maquina linux EC2, instalar o docker e docker-compose, garatir que esses serviços sempre estejam ativos no sistema linux, atualizar a hora da maquina linux EC2, instalar o nfs-utils e o amazon-efs-utils, montar o diretório /mnt/efs para o AWS EFS, criar as variaveis necessarias para a montagem do EFS e RDS, via Output do terraform, criar o arquivo .env para montar o ambiente do banco de dados, criar o arquivo docker-compose.yml para subir a aplicação em um container docker e por fim executar o container docker com o comando `docker-compose up -d`
 
 ### Arquivo `docker-compose.yml`
 

@@ -94,3 +94,13 @@ sudo chown ec2-user:ec2-user /home/ec2-user/.env /home/ec2-user/docker-compose.y
 # Inicia os serviços do Docker Compose
 cd /home/ec2-user
 docker-compose up -d
+
+# Instalar o repositório EPEL
+sudo amazon-linux-extras install epel -y
+
+# Instalar o stress-ng
+sudo yum install stress-ng -y
+
+
+
+

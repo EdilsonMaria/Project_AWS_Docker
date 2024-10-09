@@ -22,12 +22,8 @@
 # --------------------------------------
 # LAUNCH TEMPLATE 
 # --------------------------------------
-resource "time_sleep" "wait_time" {
-  create_duration = "400s"  
-}
-
 resource "aws_launch_template" "ec2-template" {
-  depends_on = [var.rds_instance_id, var.efs_id, time_sleep.wait_time]
+  depends_on = [var.rds_instance_id, var.efs_id]
 
   name          = "wordpress-launch-template"
   image_id      = var.ami
@@ -77,9 +73,9 @@ resource "aws_autoscaling_group" "wordpress-auto-scaling" {
   depends_on = [var.rds_instance_id, var.efs_id]
 
   name                      = "wordpress-auto-scaling"
-  desired_capacity          = 2
+  desired_capacity          = 1
   min_size                  = 2
-  max_size                  = 3
+  max_size                  = 5
   vpc_zone_identifier       = [var.subnet-project2-privada1.id, var.subnet-project2-privada2.id]
   target_group_arns         = [var.wordpress_target_group]
   health_check_grace_period = 300
@@ -117,3 +113,44 @@ resource "aws_autoscaling_policy" "scale-down" {
   cooldown               = 300
   policy_type            = "SimpleScaling"
 }
+
+# --------------------------------------
+# CLOUDWATCH 40% - SCALE UP
+# --------------------------------------
+resource "aws_cloudwatch_metric_alarm" "high_cpu_alarm" {
+  alarm_name          = "asg-up"
+  alarm_description = "Scales up an instance hen CPU utilization is graeter than 30%"
+  comparison_operator = "GreaterThanOrEqualToThreshold"
+  evaluation_periods  = 1
+  metric_name         = "CPUUtilization"
+  namespace           = "AWS/EC2"
+  period              = 3060
+  statistic           = "Average"
+  threshold           = 30
+  alarm_actions       = [aws_autoscaling_policy.scale-up.arn]
+  dimensions = {
+    AutoScalingGroupName = aws_autoscaling_group.wordpress-auto-scaling.id
+  }
+  actions_enabled = true
+}
+
+# --------------------------------------
+# CLOUDWATCH 40% - SCALE DOWN
+# --------------------------------------
+resource "aws_cloudwatch_metric_alarm" "low_cpu_alarm" {
+  alarm_name          = "low-cpu-alarm"
+  alarm_description = "Scales up an instance hen CPU utilization is lesser than 40%"
+  comparison_operator = "LessThanOrEqualToThreshold"
+  evaluation_periods  = 1
+  metric_name         = "CPUUtilization"
+  namespace           = "AWS/EC2"
+  period              = 60
+  statistic           = "Average"
+  threshold           = 40
+  alarm_actions       = [aws_autoscaling_policy.scale-down.arn]
+  dimensions = {
+    AutoScalingGroupName = aws_autoscaling_group.wordpress-auto-scaling.id
+  }
+  actions_enabled = true
+}
+
